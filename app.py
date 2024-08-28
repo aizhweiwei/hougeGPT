@@ -2,6 +2,8 @@ import copy
 import warnings
 from dataclasses import asdict, dataclass
 from typing import Callable, List, Optional
+import os
+os.system("pip install streamlit")
 
 import streamlit as st
 import torch
@@ -33,6 +35,38 @@ from langchain_core.output_parsers import JsonOutputParser
 import torch
 from langchain.vectorstores import  FAISS
 from langchain.prompts import PromptTemplate
+
+
+base_path = './final_model'
+os.system(f'git clone https://code.openxlab.org.cn/bob12/hougeGPT.git {base_path}')
+embedding_path = './bce-embedding-base_v1'
+os.system(f'git clone https://www.modelscope.cn/AI-ModelScope/bge-large-zh-v1.5.git {embedding_path}')
+reranker_path = './bce-reranker-base_v1'
+os.system(f'git clone https://www.modelscope.cn/AI-ModelScope/bge-reranker-v2-m3.git {reranker_path}')
+os.system(f'cd {base_path} && git lfs pull')
+os.system(f'cd {embedding_path} && git lfs pull')
+os.system(f'cd {reranker_path} && git lfs pull')
+
+model_name_or_path = "final_model"
+chunks_vector_store = "./chunks_vector_store"
+chapter_summaries_vector_store = "./chapter_summaries_vector_store"
+embedding_path="bce-embedding-base_v1"
+bge_embedding_path="bce-embedding-base_v1"
+rerank_path = "bce-reranker-base_v1"
+beg_chunks_vector_store = "./beg_chunks_vector_store"
+beg_chapter_summaries_vector_store = "./beg_chapter_summaries_vector_store"
+
+
+
+
+# model_name_or_path = "/share/new_models/Shanghai_AI_Laboratory/internlm2-chat-7b"
+# chunks_vector_store = "./chunks_vector_store"
+# chapter_summaries_vector_store = "./chapter_summaries_vector_store"
+# embedding_path="/root/bce-embedding-base_v1"
+# bge_embedding_path="/root/bge-large-zh-v1.5"
+# rerank_path = "/root/bge-reranker-v2-m3"
+# beg_chunks_vector_store = "./beg_chunks_vector_store"
+# beg_chapter_summaries_vector_store = "./beg_chapter_summaries_vector_store"
 
 
 class InternLM_LLM(LLM):
@@ -326,17 +360,6 @@ def beg_retrieve_context_per_question(state,beg_chunks_query_retriever,beg_chapt
 
 
 
-
-
-model_name_or_path = "/share/new_models/Shanghai_AI_Laboratory/internlm2-chat-7b"
-chunks_vector_store = "./chunks_vector_store"
-chapter_summaries_vector_store = "./chapter_summaries_vector_store"
-embedding_path="/root/bce-embedding-base_v1"
-bge_embedding_path="/root/bge-large-zh-v1.5"
-rerank_path = "/root/bge-reranker-v2-m3"
-beg_chunks_vector_store = "./beg_chunks_vector_store"
-beg_chapter_summaries_vector_store = "./beg_chapter_summaries_vector_store"
-
 @dataclass
 class GenerationConfig:
     # this config is used for chat to provide more diversity
@@ -606,6 +629,7 @@ def main():
         keep_only_relevant = keep_only_relevant_content(sta,llm)
         prompt = get_answer_prompt(keep_only_relevant)
         #answer_question_from_context(keep_only_relevant,llm)
+        prompt = prompt[:2048]
         real_prompt = combine_history(prompt)
         with st.chat_message('robot'):
             print("chat begin",prompt)
